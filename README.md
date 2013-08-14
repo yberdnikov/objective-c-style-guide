@@ -21,6 +21,7 @@
 * [Executing Code After a Delay](#executing-code-after-a-delay)
 * [Concurrency](#concurrency)
 * [Notifications](#notifications)
+* [Categories](#categories)
 * [Xcode Project](#xcode-project)
 
 ## Dot-Notation Syntax
@@ -201,6 +202,24 @@ NSNumber *shouldUseLiterals = [NSNumber numberWithBool:YES];
 NSNumber *ZIPCode = [NSNumber numberWithInteger:10018];
 ```
 
+Longer or more complex literals should be split over multiple lines (optionally with a terminating comma):
+
+``` objc
+NSArray *theShit = @[
+    @"Got some long string objects in here.",
+    [AndSomeModelObjects too],
+    @"Moar strings."
+];
+
+NSDictionary *keyedShit = @{
+    @"this.key": @"corresponds to this value",
+    @"otherKey": @"remoteData.payload",
+    @"some": @"more",
+    @"JSON": @"keys",
+    @"and": @"stuff",
+};
+```
+
 ## CGRect Functions
 
 When accessing the `x`, `y`, `width`, or `height` of a `CGRect`, always use the [`CGGeometry` functions](http://developer.apple.com/library/ios/#documentation/graphicsimaging/reference/CGGeometry/Reference/reference.html) instead of direct struct member access. From Apple's `CGGeometry` reference:
@@ -351,6 +370,12 @@ Singleton objects should use a thread-safe pattern for creating their shared ins
 }
 ```
 This will prevent [possible and sometimes prolific crashes] (http://cocoasamurai.blogspot.com/2011/04/singletons-your-doing-them-wrong.html).
+
+## Categories
+
+ * Categories should be named for the sort of functionality they provide. Don't create umbrella categories.
+ * Category methods should always be prefixed.
+ * If you need to expose private methods for subclasses or unit testing, create a class extension named `Class+Private`.
 
 ## Xcode project
 
