@@ -24,6 +24,92 @@
 * [Categories](#categories)
 * [Xcode Project](#xcode-project)
 
+## Comments
+
+When they are needed, comments should be used to explain **why** a particular piece of code does something. Any comments that are used must be kept up-to-date or deleted.
+
+Block comments should generally be avoided, as code should be as self-documenting as possible, with only the need for intermittent, few-line explanations. *Exception: This does not apply to those comments used to generate documentation.*
+
+## Naming
+
+Apple naming conventions should be adhered to wherever possible, especially those related to [memory management rules](https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/MemoryMgmt/Articles/MemoryMgmt.html) ([NARC](http://stackoverflow.com/a/2865194/340508)).
+
+Long, descriptive method and variable names are good.
+
+**Preferred:**
+
+```objc
+UIButton *settingsButton;
+```
+
+**Not Preferred:**
+
+```objc
+UIButton *setBut;
+```
+
+A three letter prefix should always be used for class names and constants, however may be omitted for Core Data entity names. For any official raywenderlich.com books, starter kits, or tutorials, the prefix 'RWT' should be used.
+
+Constants should be camel-case with all words capitalized and prefixed by the related class name for clarity.
+
+**Preferred:**
+
+```objc
+static NSTimeInterval const RWTTutorialViewControllerNavigationFadeAnimationDuration = 0.3;
+```
+
+**Not Preferred:**
+
+```objc
+static NSTimeInterval const fadetime = 1.7;
+```
+
+Properties should be camel-case with the leading word being lowercase. Use auto-synthesis for properties rather than manual @synthesize statements unless you have good reason.
+
+**Preferred:**
+
+```objc
+@property (strong, nonatomic) NSString *descriptiveVariableName;
+```
+
+**Not Preferred:**
+
+```objc
+id varnm;
+```
+
+### Underscores
+
+When using properties, instance variables should always be accessed and mutated using `self.`. This means that all properties will be visually distinct, as they will all be prefaced with `self.`. 
+
+An exception to this: inside initializers, the backing instance variable (i.e. _variableName) should be used directly to avoid any potential side effects of the getters/setters.
+
+Local variables should not contain underscores.
+
+## Methods
+
+In method signatures, there should be a space after the method type (-/+ symbol). There should be a space between the method segments (matching Apple's style).  Always include a keyword and be descriptive with the word before the argument which describes the argument.
+
+The usage of the word "and" is reserved.  It should not be used for multiple parameters as illustrated in the `initWithWidth:height:` example below.
+
+**Preferred:**
+```objc
+- (void)setExampleText:(NSString *)text image:(UIImage *)image;
+- (void)sendAction:(SEL)aSelector to:(id)anObject forAllCells:(BOOL)flag;
+- (id)viewWithTag:(NSInteger)tag;
+- (instancetype)initWithWidth:(CGFloat)width height:(CGFloat)height;
+```
+
+**Not Preferred:**
+
+```objc
+-(void)setT:(NSString *)text i:(UIImage *)image;
+- (void)sendAction:(SEL)aSelector :(id)anObject :(BOOL)flag;
+- (id)taggedView:(NSInteger)tag;
+- (instancetype)initWithWidth:(CGFloat)width andHeight:(CGFloat)height;
+- (instancetype)initWith:(int)width and:(int)height;  // Never do this.
+```
+
 ## Dot-Notation Syntax
 
 Dot-notation should **always** be used for accessing and mutating properties. Bracket notation is preferred in all other instances.
@@ -132,6 +218,26 @@ or
 
 ```objc
 if (!error) return success;
+```
+
+### Ternary Operator
+
+The Ternary operator, `?:` , should only be used when it increases clarity or code neatness. A single condition is usually all that should be evaluated. Evaluating multiple conditions is usually more understandable as an `if` statement, or refactored into instance variables. In general, the best use of the ternary operator is during assignment of a variable and deciding which value to use.
+
+Non-boolean variables should be compared against something, and parentheses are added for improved readability.  If the variable being compared is a boolean type, then no parentheses are needed.
+
+**Preferred:**
+```objc
+NSInteger value = 5;
+result = (value != 0) ? x : y;
+
+BOOL isHorizontal = YES;
+result = isHorizontal ? x : y;
+```
+
+**Not Preferred:**
+```objc
+result = a > b ? x = c > d ? c : d : y;
 ```
 
 ## Methods
@@ -325,6 +431,34 @@ typedef NS_ENUM(NSInteger, NYTAdRequestState) {
 };
 ```
 
+## Init Methods
+
+Init methods should follow the convention provided by Apple's generated code template.  A return type of 'instancetype' should also be used instead of 'id'.
+
+```objc
+- (instancetype)init
+{
+  self = [super init];
+  if (self)
+  {
+    // ...
+  }
+  return self;
+}
+```
+
+See [Class Constructor Methods](#class-constructor-methods) for link to article on instancetype.
+
+## Class Constructor Methods
+
+Where class constructor methods are used, these should always return type of 'instancetype' and never 'id'. This ensures the compiler correctly infers the result type. 
+
+```objc
+@interface Airplane
++ (instancetype)airplaneWithType:(RWTAirplaneType)type;
+@end
+```
+
 ## Private Properties
 
 Private properties should be declared in class extensions (anonymous categories) in the implementation file of a class. Named categories (such as `NYTPrivate` or `private`) should never be used unless extending another class.
@@ -388,6 +522,60 @@ if (![someObject boolValue])
 if ([someObject boolValue] == NO)
 if (isAwesome == YES) // Never do this.
 ```
+
+## Golden Path
+
+When coding with conditionals, the left hand margin of the code should be the "golden" or "happy" path.  That is, don't nest `if` statements.  Multiple return statements are OK.
+
+**Preferred:**
+
+```objc
+- (void)someMethod
+{
+  if (![someOther boolValue])
+	  return;
+
+  //Do something important
+}
+```
+
+**Not Preferred:**
+
+```objc
+- (void)someMethod
+{
+   if ([someOther boolValue])
+   {
+     //Do something important
+   }
+}
+```
+
+## Error handling
+
+When methods return an error parameter by reference, switch on the returned value, not the error variable.
+
+**Preferred:**
+```objc
+NSError *error;
+if (![self trySomethingWithError:&error]) 
+{
+   // Handle Error
+}
+```
+
+**Not Preferred:**
+```objc
+NSError *error;
+[self trySomethingWithError:&error];
+if (error)
+{
+   // Handle Error
+}
+```
+
+Some of Apple’s APIs write garbage values to the error parameter (if non-NULL) in successful cases, so switching on the error can cause false negatives (and subsequently crash).
+
 
 -----
 
